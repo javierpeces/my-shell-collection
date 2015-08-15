@@ -6,6 +6,11 @@
 # https://github.com/adobe-fonts/source-sans-pro.git
 # https://github.com/adobe-fonts/source-serif-pro.git
 #
+# https://github.com/adobe-fonts/source-code-pro/archive/2.010R-ro/1.030R-it.tar.gz
+# https://github.com/adobe-fonts/source-sans-pro/archive/2.010R-ro/1.065R-it.tar.gz
+# https://github.com/adobe-fonts/source-serif-pro/archive/1.017R.tar.gz
+#
+#
 #
 raitnau=$(date +%F\ %T)
 myself=$(basename $0 .sh)
