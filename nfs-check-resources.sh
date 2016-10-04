@@ -6,7 +6,7 @@
 #
 
 DEBUG=""
-COMMUNITY="MY_RO_COMMUNITY"
+COMMUNITY="YOUR_OWN_RO_COMMUNITY_NAME"
 NOW=$(date +%F-%H:%M:%S)
 MYSELF=`basename ${0} .sh`
 LOCKFILE="/tmp/${MYSELF}.lock"
@@ -35,159 +35,156 @@ for ITEM in ${MOUNT[@]}
 do
 
     #
-	  # Variable RMTFS should contain a "1.2.3.4:/REMOTE" and LOCFS "/opt/xxxx"
-	  #
+    # Variable RMTFS should contain a "1.2.3.4:/REMOTE" and LOCFS "/opt/xxxx"
+    #
 
-	  RMTFS=$(echo ${ITEM} | awk '{print $1}')
-	  LOCFS=$(echo ${ITEM} | awk '{print $3}')
-	  echo -e "\n${MYSELF}: Iteración ${LOOP}, Check ${LOCFS} in ${RMTFS}"
+    RMTFS=$(echo ${ITEM} | awk '{print $1}')
+    LOCFS=$(echo ${ITEM} | awk '{print $3}')
+    echo -e "\n${MYSELF}: Iteration ${LOOP}, check ${LOCFS} in ${RMTFS}"
 
-	  #
-	  # Get the IP address of RMTFS and try a PING
-	  #
+    #
+    # Get the IP address of RMTFS and try a PING
+    #
 
-	  IPADDR=$(echo ${RMTFS} | awk -F: '{print $1}')
-	  ping -c1 ${IPADDR} > /dev/null
+    IPADDR=$(echo ${RMTFS} | awk -F: '{print $1}')
+    ping -c1 ${IPADDR} > /dev/null
 
-	  if [ "$?"=="0" ]
-	  then
+    if [ "$?"=="0" ]
+    then
   
-    		#
-		    # Got an answer? run SNMP query
-		    #
+        #
+        # Got an answer? run SNMP query
+        #
 
-		    echo "${MYSELF}: Pinging ${IPADDR} returned a correct answer"
+        echo "${MYSELF}: Ping ${IPADDR} is OK"
         SNMPW=(`snmpwalk -v2c -c ${COMMUNITY} -Oq localhost hrStorageDescr`)
 
-		    if [ "$?"=="0" ]
-		    then
+        if [ "$?"=="0" ]
+        then
         
-			      #
-			      # Process entries if the SNMP query returned some data
-			      #
+            #
+	    # Process entries if the SNMP query returned any data
+	    #
 
-			      echo "${MYSELF}: SNMP query to ${IPADDR} is OK"
+            echo "${MYSELF}: SNMP query ${IPADDR} is OK"
 
-			      for ENTRY in ${SNMPW[@]}
-			      do
+            for ENTRY in ${SNMPW[@]}
+            do
 
                 # 
-				        # Encontrar la entrada que corresponde al FS actual
-				        #
+                # Find the entry corresponding to the current FS
+                #
 
-				        test -z "${DEBUG}" || echo "${MYSELF}: Entry ${ENTRY}"
+		test -z "${DEBUG}" || echo "${MYSELF}: Entry ${ENTRY}"
 				
-				        if [[ "${ENTRY}" =~ "${LOCFS}" ]]
-				        then
+		if [[ "${ENTRY}" =~ "${LOCFS}" ]]
+		then
                 
-					          # 
-					          # Obtain the SNMP index for current entry
-					          #
+                    # 
+                    # Obtain the SNMP index for current entry
+                    #
 
-					          test -z "${DEBUG}" || echo "${MYSELF}: Encontrado ${LOCFS}"
-					          INDEX=$(echo ${ENTRY} | tr ":." "  " | awk '{print $3}')
-					          test -z "${DEBUG}" || echo "${MYSELF}: Mount point ${LOCFS}, Index ${INDEX}"
+                    test -z "${DEBUG}" || echo "${MYSELF}: Found filesystem ${LOCFS}"
+                    INDEX=$(echo ${ENTRY} | tr ":." "  " | awk '{print $3}')
+                    test -z "${DEBUG}" || echo "${MYSELF}: Mount point ${LOCFS}, Index ${INDEX}"
 
-          					#
-          					# New SNMP query elements with current index
-					          #
+                    #
+                    # New SNMP query elements with current index
+                    #
 
-					          SNMPX=(`snmpwalk -v2c -c ${COMMUNITY} -Oq localhost hrStorage | grep "\.${INDEX}"`)
+                    SNMPX=(`snmpwalk -v2c -c ${COMMUNITY} -Oq localhost hrStorage | grep "\.${INDEX}"`)
 
-					          for ENTRY2 in ${SNMPX[@]}
-					          do
-						            test -z "${DEBUG}" || echo "${MYSELF}: Entry ${ENTRY2}"
+                    for ENTRY2 in ${SNMPX[@]}
+                    do
+			test -z "${DEBUG}" || echo "${MYSELF}: Entry ${ENTRY2}"
+            		#
+			# Description, Size, Used space, Assignment units
+			#
 
-            						#
-						            # Description, Size, Used space, Assignment units
-						            #
+                        if [[ "${ENTRY2}" =~ "hrStorageDescr" ]]
+			then
+			    EMPNT=$(echo ${ENTRY2} | awk '{print $NF}')
+                        fi
 
-						            if [[ "${ENTRY2}" =~ "hrStorageDescr" ]]
-						            then
-							              EMPNT=$(echo ${ENTRY2} | awk '{print $NF}')
-						            fi
+                        if [[ "${ENTRY2}" =~ "hrStorageSize" ]]
+                        then
+                            ESIZE=$(echo ${ENTRY2} | awk '{print $NF}')
+                        fi
 
-						            if [[ "${ENTRY2}" =~ "hrStorageSize" ]]
-						            then
-							              ESIZE=$(echo ${ENTRY2} | awk '{print $NF}')
-						            fi
+                        if [[ "${ENTRY2}" =~ "hrStorageUsed" ]]
+                        then
+                            EUSED=$(echo ${ENTRY2} | awk '{print $NF}')
+                        fi
 
-						            if [[ "${ENTRY2}" =~ "hrStorageUsed" ]]
-						            then
-							              EUSED=$(echo ${ENTRY2} | awk '{print $NF}')
-						            fi
-
-						            if [[ "${ENTRY2}" =~ "hrStorageAllocationUnits" ]]
-						            then
-							              EUNIT=$(echo ${ENTRY2} | awk '{print $(NF-1), $NF}')
-						            fi
-
+                        if [[ "${ENTRY2}" =~ "hrStorageAllocationUnits" ]]
+                        then
+                            EUNIT=$(echo ${ENTRY2} | awk '{print $(NF-1), $NF}')
+                        fi
                     done
 
-					          #
-					          # Detalle
-					          #
+                    #
+                    # Detail
+                    #
 
-					          echo -e "${MYSELF}: ${EMPNT}, Size ${ESIZE}, Used ${EUSED}, Units ${EUNIT}"
-				        fi
+                    echo -e "${MYSELF}: ${EMPNT}, Size ${ESIZE}, Used ${EUSED}, Units ${EUNIT}"
+                fi
 
-             done
+            done
 
-          else
+        else
 
-              #
-		        	# Force unmount if the SNMP check fails
-			        #
+            #
+            # Force unmount if the SNMP check fails
+            #
 
-			        echo "${MYSELF}: KO. SNMP check on ${IPADDR} failed"
+            echo "${MYSELF}: KO. SNMP check ${IPADDR} failed"
+            test -z "${DEBUG}" || echo "${MYSELF}: Trying to unmount ${LOCFS}"
+            sudo umount -f ${LOCFS}
 
-			        test -z "${DEBUG}" || echo "${MYSELF}: Trying to unmount ${LOCFS}"
-			        sudo umount -f ${LOCFS}
+            if [ "$?"=="0" ]
+            then
+                #
+                # If unmounted properly then try to mount again
+                # 
 
-	            if [ "$?"=="0" ]
-			        then
-
-                  #
-	  		  	      # If unmounted properly then try to mount again
-		    		      # 
-
-				          echo "${MYSELF}: Unmounted ${LOCFS}"
-                  sleep 600
-                  sudo mount ${LOCFS}
+                echo "${MYSELF}: Unmounted ${LOCFS}"
+                sleep 600
+                sudo mount ${LOCFS}
 				
-    				      #
-		    		      # Show mount status message
-				          # 
+                #
+                # Show mount status message
+                # 
 
-				          if [ "$?"=="0" ]
-                  then
-                      echo "${MYSELF}: Muonted ${LOCFS}"
-                  else
-                      echo "${MYSELF}: KO. Error trying to mount ${LOCFS}"
-                  fi
+                if [ "$?"=="0" ]
+                then
+                    echo "${MYSELF}: Mounted ${LOCFS}"
+                else
+                    echo "${MYSELF}: KO. Error trying to mount ${LOCFS}"
+                fi
               
-			        else
+            else
 
-                  #
-		    		      # Did not unmount properly, there is not a lot you can do so far
-				          #
+                #
+                # Did not unmount properly, there is not a lot you can do so far
+                #
 
-				          echo "${MYSELF}: KO. Could not unmount ${LOCFS}"
+                echo "${MYSELF}: KO. Could not unmount ${LOCFS}"
 
-              fi
+            fi
 
-		      fi
+        fi
 
-      else
+    else
 
-          #
-		      # If the system is not reachable then an intervention is required
-		      #
+        #
+        # If the system is not reachable then an intervention is required
+        #
 		
-		      echo "${MYSELF}: KO. Ping ${IPADDR} fails"
-      fi
+        echo "${MYSELF}: KO. Ping ${IPADDR} failed"
+	
+    fi
 
-	    LOOP=`expr ${LOOP} + 1`
+    LOOP=`expr ${LOOP} + 1`
 
 done
 
@@ -197,3 +194,6 @@ done
 
 rm -f ${LOCKFILE}
 echo -e "\n${MYSELF}: Ended on $(date +%F-%H:%M:%S)"
+
+#
+# end of the known universe
