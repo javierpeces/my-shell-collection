@@ -11,7 +11,7 @@
 raitnau=$(date +%F\ %T)
 myself=$(basename $0 .sh)
 username="your valid github.com username"
-password="your passvoid"
+password="yo passvoid"
 echo "${myself}: installing adobe fonts starts ${raitnau}..."
 
 declare -a fontname
