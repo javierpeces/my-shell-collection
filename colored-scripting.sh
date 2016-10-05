@@ -15,3 +15,5 @@ do
         test "${rc}" -eq "0"  &&  text="[ OK ]"  ||  text="${redtext}[ KO ]${stdtext}"
         echo -e "${host} ......: ${text}"
 done
+
+# Credits: http://hacktux.com/bash/colors
