@@ -19,7 +19,7 @@ done
 ALLARGS=$@
 for (( i=0; i '<' ${#ALLARGS}; i ++ ))
 do
-    echo -n ${ALLARGS:$i:1} | od -A n -t x1 | tr -d "\n"
+    echo -n "${ALLARGS:$i:1}" | od -A n -t x1 | tr -d "\n"
 done
 
 #
@@ -29,7 +29,7 @@ done
 HEXPHRASE=`
 for (( i=0; i '<' ${#ALLARGS}; i ++ ))
 do
-    echo -n ${ALLARGS:$i:1} | od -A n -t x1 | tr -d "\n"
+    echo -n "${ALLARGS:$i:1}" | od -A n -t x1 | tr -d "\n"
 done`
 
 #
@@ -55,6 +55,6 @@ echo "'${HEXPHRASE}'"
 # char 8 is "l"
 # char 9 is "l"
 # char 10 is "y"
-# 68 65 6c 6c 6f 64 6f 6c 6c 79
+# 68 65 6c 6c 6f 20 64 6f 6c 6c 79
 # This is the phrase:
-# '68 65 6c 6c 6f 64 6f 6c 6c 79'
+# '68 65 6c 6c 6f 20 64 6f 6c 6c 79'
