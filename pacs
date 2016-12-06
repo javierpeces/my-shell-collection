@@ -1,0 +1,18 @@
+# pacs
+# pacman search
+# tailor [instalado] to fit your language
+
+$ cat /usr/local/bin/pacs
+#!/bin/bash
+# BEGIN { printf "cols: %s\n",DD; } 
+sudo pacman -Ss $1 | awk -vDD=`tput cols` \
+'{ 
+ if( $NF=="[instalado]" ) {II="[*]"} else {II="[ ]"};
+ gsub(/\//," "); 
+ Z=$2; 
+ getline; 
+ gsub(/^[ \t]+/,"",$0);
+ printf "%-25s %s %-s\n",Z,II,substr($0,1,DD-36);
+}'
+
+# that's it folks
