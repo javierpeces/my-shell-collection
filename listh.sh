@@ -14,6 +14,11 @@ then
     exit 1
 fi
 
+# TODO: 
+# - check that the file exists and is readable
+# - check that the second arg is number. A reasonable one.
+
+
 # use the newline character as input field separator
 
 IFS=$'\n'
