@@ -3,16 +3,15 @@
 # listh.sh -- list data file in the classic mainframe hex fashion
 
 function usage() {
-        echo "usage: $0 inputfile recordlen"
+    echo "usage: $0 inputfile recordlen"
 }
 
 # require two args, the data file and the record length to be used.
 
-
 if [ -z "$1" -o -z "$2" ]
 then 
-        usage
-        exit 1
+    usage
+    exit 1
 fi
 
 # use the newline character as input field separator
@@ -30,20 +29,20 @@ ruler=""
 
 for i in $(seq 1 $2)
 do
-        if [ "$(expr ${i} % 10)" -eq "0" ]
+    if [ "$(expr ${i} % 10)" -eq "0" ]
+    then
+        str="$(expr ${i} / 10)"
+        nchar="${str:$((${#str}-1)):1}"
+    else
+        if [ "$(expr ${i} % 5)" -eq "0" ]
         then
-                str="$(expr ${i} / 10)"
-                nchar="${str:$((${#str}-1)):1}"
+            nchar="+"
         else
-                if [ "$(expr ${i} % 5)" -eq "0" ]
-                then
-                        nchar="+"
-                else
-                        nchar="."
-                fi
+            nchar="."
         fi
+    fi
 
-        ruler="${ruler}${nchar}"
+    ruler="${ruler}${nchar}"
 done
 
 # now process data. Start with an empty line.
